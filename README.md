@@ -1,6 +1,6 @@
 # VRChatPNG
 
-## [`VRChatPNG.py`](#vrchatpng)
+## `VRChatPNG.py`
 
 [Source](VRChatPNG/VRChatPNG.py)
 
@@ -8,7 +8,7 @@ Converts VRChat API's JSON response for worlds and avatars into PNG files simila
 
 Also embeds a zip file in the images containing the JSON response at the time of creation and the full-size image used to generate the thumbnail.
 
-## [`VRChatThumbnail.py`](#vrchatthumbnailpy)
+## `VRChatThumbnail.py`
 
 [Source](VRChatPNG/VRChatThumbnail.py)
 
