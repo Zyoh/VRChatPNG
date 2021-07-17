@@ -93,7 +93,7 @@ class App:
 		unique_name = f"{data.get('id')}.{data.get('version')}"
 
 		# Make folder for files
-		working_dir = self.json_file_path.parent / f".{unique_name}"
+		working_dir = self.json_file_path.parent / f"{unique_name}"
 		working_dir.mkdir()
 		self.floating_dir = working_dir
 
@@ -161,10 +161,12 @@ class App:
 def main():
 	options = Options(sys.argv)
 	HELP = """
-Options:
+Help:
     -h, --help      Display help message and exit.
 
+Main:
     -i <path>       Path to JSON file containing avatar data.
+    [-P]            Keep temp directory on app failure. Must be manually deleted.
 """
 
 	if options.get("-h", False) or options.get("--help", False):
@@ -176,7 +178,8 @@ Options:
 		try:
 			app.run()
 		except Exception as e:
-			app.delete_floating()
+			if not options.get("-P", False):
+				app.delete_floating()
 			raise e
 
 		return
