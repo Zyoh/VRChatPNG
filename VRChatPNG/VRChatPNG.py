@@ -108,6 +108,9 @@ class App:
 
 		# Get avatar asset files - No longer available
 		pass
+
+		# Add file with timestamp
+		(working_dir / str(int(time.time()))).touch()
 		
 		# Compress folder to zip
 		shutil.make_archive(working_dir.parent / unique_name, 'zip', working_dir)
