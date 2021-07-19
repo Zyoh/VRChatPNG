@@ -49,3 +49,21 @@ img: Image = VRChatThumbnail.make_thumbnail(
 
 img.save(...)
 ```
+
+```Python
+import VRChatPNG
+
+# Path to JSON file containing VRChat avatar data.
+json_path = ...
+
+app = VRChatPNG.App(json_file_path=json_path)
+
+# Recommended to delete generated files on app failure!
+# App will fail if folder exists on next run.
+try:
+	app.run()
+except Exception as e:
+	app.delete_floating()
+	raise e
+
+```
