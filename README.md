@@ -27,6 +27,19 @@ Update your environment according to [requirements.txt](requirements.txt)
 python VRChatPNG.py [-h|--help] [-P] [-W|--wait] [-X|--no-zip] -i <path>
 python VRChatThumbnail.py [-h|--help] -i <path> {-p <int>|--platform <int>} {-n <str>|--name <str>} {-a <str>|--author <str>}
 ```
+Ex.
+```bash
+python VRChatPNG.py -h
+python VRChatPNG.py --help
+
+python VRChatPNG.py -i ...
+python VRChatPNG.py -i ... -P
+python VRChatPNG.py -i ... -X --wait
+
+python VRChatThumbnail.py -h
+python VRChatThumbnail.py --help
+python VRChatThumbnail.py -i ... --platform 0 -n name --author "author_name"
+```
 
 ### **Python**
 ```Python
