@@ -41,13 +41,17 @@ class Downloader:
 
 
 class App:
-	def __init__(self, json_file_path: Path):
+	def __init__(self, json_file_path: Path, wait_to_compress: bool = False, no_zip: bool = False):
 		assert isinstance(json_file_path, Path)
 		self.json_file_path = json_file_path
+		assert isinstance(wait_to_compress, bool)
+		self.wait_to_compress = wait_to_compress
+		assert isinstance(no_zip, bool)
+		self.no_zip = no_zip
 
 		# If error: delete these
-		self.floating_dir = None
-		self.floating_files = []
+		self.floating_dir: Path = None
+		self.floating_files: list = []
 
 	@staticmethod
 	def vrc_url_filename(file_url):
@@ -59,12 +63,14 @@ class App:
 			assert file.exists()
 
 			file.unlink()
+		self.floating_files = []
 		
 		if self.floating_dir is not None:
 			assert isinstance(self.floating_dir, Path)
 			assert self.floating_dir.is_dir()
 
 			shutil.rmtree(self.floating_dir)
+		self.floating_dir = None
 
 	def run(self):
 		with open(self.json_file_path, 'r', encoding='utf-8') as f:
@@ -111,10 +117,6 @@ class App:
 
 		# Add file with timestamp
 		(working_dir / str(int(time.time()))).touch()
-		
-		# Compress folder to zip
-		shutil.make_archive(working_dir.parent / unique_name, 'zip', working_dir)
-		self.floating_files.append(working_dir.parent / (unique_name + ".zip"))
 
 		# ---
 
@@ -145,39 +147,50 @@ class App:
 		self.floating_files.append(working_dir / 'image.png')
 
 		# ---
-
-		# Combine image with zip
-		with open(working_dir.parent / (unique_name + ".png"), 'wb') as f_out:
-			with open(working_dir / 'image.png', 'rb') as in_img:
-				f_out.write(in_img.read())
-			with open(working_dir.parent / (unique_name + ".zip"), 'rb') as in_zip:
-				f_out.write(in_zip.read())
-
-		# Delete extra files
-		shutil.rmtree(working_dir)
-		self.floating_dir = None
 		
-		(working_dir.parent / (unique_name + ".zip")).unlink()
-		self.floating_files = []
+		# Wait for user to add or modify files
+		if self.wait_to_compress:
+			input("Press enter to continue...")
+
+		if not self.no_zip:
+			# Compress folder to zip
+			shutil.make_archive(working_dir.parent / unique_name, 'zip', working_dir)
+			self.floating_files.append(working_dir.parent / (unique_name + ".zip"))
+
+			# Combine image with zip
+			with open(working_dir.parent / (unique_name + ".png"), 'wb') as f_out:
+				with open(working_dir / 'image.png', 'rb') as in_img:
+					f_out.write(in_img.read())
+				with open(working_dir.parent / (unique_name + ".zip"), 'rb') as in_zip:
+					f_out.write(in_zip.read())
+		else:
+			shutil.copy(working_dir / 'image.png', working_dir.parent / (unique_name + ".png"))
+
+		# Delete temp stuff
+		self.delete_floating()
 
 
 def main():
 	options = Options(sys.argv)
 	HELP = """
 Help:
-    -h, --help      Display help message and exit.
+    -h, --help          Display help message and exit.
 
 Main:
-    -i <path>       Path to JSON file containing avatar data.
-    [-P]            Keep temp directory on app failure. Must be manually deleted.
+    -i <path>           Path to JSON file containing avatar data.
+    [-P]                Keep temp directory on app failure. Must be manually deleted.
+    [-W, --wait]        Wait for user to add|remove|modify files in temp directory before compressing.
+    [-X, --no-zip]      Generate only thumbnail without embedding zip.
 """
 
 	if options.get("-h", False) or options.get("--help", False):
 		pass
 	elif json_path := options.get("-i", True):
 		json_path = Path(json_path).resolve()
-
-		app = App(json_path)
+		wait_to_compress = options.get("-W", False) or options.get("--wait", False)
+		no_zip = options.get("-X", False) or options.get("--no-zip", False)
+		
+		app = App(json_path, wait_to_compress, no_zip)
 		try:
 			app.run()
 		except Exception as e:

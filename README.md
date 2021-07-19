@@ -24,7 +24,7 @@ Update your environment according to [requirements.txt](requirements.txt)
 
 ### **Command Line**
 ```bash
-python VRChatPNG.py [-h|--help] [-P] -i <path>
+python VRChatPNG.py [-h|--help] [-P] [-W|--wait] [-X|--no-zip] -i <path>
 python VRChatThumbnail.py [-h|--help] -i <path> {-p <int>|--platform <int>} {-n <str>|--name <str>} {-a <str>|--author <str>}
 ```
 
