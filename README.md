@@ -1,5 +1,7 @@
 # VRChatPNG
 
+Create previews of VRChat avatars and worlds.
+
 ## `VRChatPNG.py`
 
 [Source](VRChatPNG/VRChatPNG.py)
@@ -80,3 +82,7 @@ except Exception as e:
 	raise e
 
 ```
+
+# License
+
+[MIT license](LICENSE), excluding files within the [data](VRChatPNG/data) directory.
