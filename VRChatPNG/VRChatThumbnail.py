@@ -106,17 +106,18 @@ def main():
 	options = Options(sys.argv)
 
 	HELP = """
-Options:
+Help:
     -h, --help                      Display help message and exit.
 
+Main:
     -i <path>                       Path to image.
+    [-o <path>, --output <path>]    Output result to this path. Defaults to auto-generating file in input file's directory.
     -p <int>, --platform <int>      Supported platforms.
         - 0 | PC & Quest
         - 1 | PC
         - 2 | Quest
     -n <str>, --name <str>          Name of avatar.
     -a <str>, --author <str>        Name of avatar author.
-    
 """
 
 	if options.get("-h", False) or options.get("--help", False):
@@ -130,9 +131,10 @@ Options:
 		image_path = Path(image_path).resolve()
 		assert image_path.exists()
 
-		if out_path := options.get("-o"):
+		if out_path := options.get("-o") or options.get("--output"):
 			out_path = Path(out_path).resolve()
-			assert out_path.exists()
+			if out_path.is_dir():
+				out_path = out_path / (f"{time.time()}." + image_path.stem + ".png")
 		else:
 			out_path = image_path.parent / (f"{time.time()}." + image_path.stem + ".png")
 

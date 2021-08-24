@@ -41,7 +41,9 @@ class Downloader:
 
 
 class App:
-	def __init__(self, json_file_path: Path, wait_to_compress: bool = False, no_zip: bool = False):
+	def __init__(self, output_dir: Path, json_file_path: Path, wait_to_compress: bool = False, no_zip: bool = False):
+		assert isinstance(output_dir, Path)
+		self.output_dir = output_dir
 		assert isinstance(json_file_path, Path)
 		self.json_file_path = json_file_path
 		assert isinstance(wait_to_compress, bool)
@@ -99,7 +101,8 @@ class App:
 		unique_name = f"{data.get('id')}.{data.get('version')}"
 
 		# Make folder for files
-		working_dir = self.json_file_path.parent / f"{unique_name}"
+		working_dir = self.output_dir / f"{unique_name}"
+		# working_dir = self.json_file_path.parent / f"{unique_name}"
 		working_dir.mkdir()
 		self.floating_dir = working_dir
 
@@ -177,20 +180,26 @@ Help:
     -h, --help          Display help message and exit.
 
 Main:
-    -i <path>           Path to JSON file containing avatar data.
-    [-P]                Keep temp directory on app failure. Must be manually deleted.
-    [-W, --wait]        Wait for user to add|remove|modify files in temp directory before compressing.
-    [-X, --no-zip]      Generate only thumbnail without embedding zip.
+    -i <path>                       Path to JSON file containing avatar data.
+    [-o <path>, --out-dir <path>]   Generate all files within this directory. Defaults to JSON file directory.
+    [-P]                            Keep temp directory on app failure. Must be manually deleted.
+    [-W, --wait]                    Wait for user to add|remove|modify files in temp directory before compressing.
+    [-X, --no-zip]                  Generate only thumbnail without embedding zip.
 """
 
 	if options.get("-h", False) or options.get("--help", False):
 		pass
-	elif json_path := options.get("-i", True):
+	elif (json_path := options.get("-i", True)):
 		json_path = Path(json_path).resolve()
+		if (_output_dir := options.get("-o", True) or options.get("--out-dir", True)):
+			output_dir = Path(_output_dir).resolve()
+			output_dir.mkdir(exist_ok=True, parents=True)
+		else:
+			output_dir = json_path.parent
 		wait_to_compress = options.get("-W", False) or options.get("--wait", False)
 		no_zip = options.get("-X", False) or options.get("--no-zip", False)
 		
-		app = App(json_path, wait_to_compress, no_zip)
+		app = App(output_dir, json_path, wait_to_compress, no_zip)
 		try:
 			app.run()
 		except Exception as e:
