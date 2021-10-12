@@ -34,7 +34,9 @@ python VRChatPNG.py \
 	[-X|--no-zip] \
 	[-o <path>|--out-dir <path>] \
 	[-A <path>|--asset-dir <path>]
+```
 
+```bash
 python VRChatThumbnail.py \
 	[-h|--help] \
 	-i <path> \
@@ -46,11 +48,12 @@ Ex.
 ```bash
 python VRChatPNG.py -h
 python VRChatPNG.py --help
-
 python VRChatPNG.py -i ...
 python VRChatPNG.py -i ... -P
 python VRChatPNG.py -i ... -X --wait
+```
 
+```bash
 python VRChatThumbnail.py -h
 python VRChatThumbnail.py --help
 python VRChatThumbnail.py -i ... --platform 0 -n name --author "author_name"
