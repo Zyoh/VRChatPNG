@@ -41,15 +41,24 @@ class Downloader:
 
 
 class App:
-	def __init__(self, output_dir: Path, json_file_path: Path, wait_to_compress: bool = False, no_zip: bool = False):
+	def __init__(self, output_dir: Path, json_file_path: Path, wait_to_compress: bool = False, no_zip: bool = False, asset_dir: Path = None):
 		assert isinstance(output_dir, Path)
-		self.output_dir = output_dir
+		self.output_dir = output_dir.resolve()
+		
 		assert isinstance(json_file_path, Path)
-		self.json_file_path = json_file_path
+		self.json_file_path = json_file_path.resolve()
+		
 		assert isinstance(wait_to_compress, bool)
 		self.wait_to_compress = wait_to_compress
+		
 		assert isinstance(no_zip, bool)
 		self.no_zip = no_zip
+
+		assert isinstance(asset_dir, Path) or asset_dir is None
+		if asset_dir is not None:
+			self.asset_dir = asset_dir.resolve()
+		else:
+			self.asset_dir = None
 
 		# If error: delete these
 		self.floating_dir: Path = None
@@ -115,8 +124,11 @@ class App:
 		image_path = working_dir / (self.vrc_url_filename(image_url) + ".png")
 		Downloader.qdownload(image_url, image_path)
 
-		# Get avatar asset files - No longer available
-		pass
+		# Get avatar asset file
+		if self.asset_dir is not None:
+			if asset_file_paths := list(self.asset_dir.rglob(f"{data.get('id')}.*.vrca")):
+				asset_file_path = sorted(asset_file_paths)[-1]
+				shutil.copy(asset_file_path.resolve(), working_dir / asset_file_path.name)
 
 		# Add file with timestamp
 		(working_dir / str(int(time.time()))).touch()
@@ -177,29 +189,41 @@ def main():
 	options = Options(sys.argv)
 	HELP = """
 Help:
-    -h, --help          Display help message and exit.
+    -h, --help                        Display help message and exit.
 
 Main:
-    -i <path>                       Path to JSON file containing avatar data.
-    [-o <path>, --out-dir <path>]   Generate all files within this directory. Defaults to JSON file directory.
-    [-P]                            Keep temp directory on app failure. Must be manually deleted.
-    [-W, --wait]                    Wait for user to add|remove|modify files in temp directory before compressing.
-    [-X, --no-zip]                  Generate only thumbnail without embedding zip.
+    -i <path>                         Path to JSON file containing avatar data.
+    [-o <path>, --out-dir <path>]     Generate all files within this directory. Defaults to JSON file directory.
+    [-P]                              Keep temp directory on app failure. Must be manually deleted.
+    [-W, --wait]                      Wait for user to add|remove|modify files in temp directory before compressing.
+    [-X, --no-zip]                    Generate only thumbnail without embedding zip.
+    [-A <path>, --asset-dir <path>]   Output directory of VRChat-Cache-Exporter. VRCA files found here will be included in the output PNG.
 """
 
 	if options.get("-h", False) or options.get("--help", False):
+		# Help
 		pass
 	elif (json_path := options.get("-i", True)):
+		# Main program
 		json_path = Path(json_path).resolve()
+		
 		if (_output_dir := options.get("-o", True) or options.get("--out-dir", True)):
 			output_dir = Path(_output_dir).resolve()
 			output_dir.mkdir(exist_ok=True, parents=True)
 		else:
 			output_dir = json_path.parent
-		wait_to_compress = options.get("-W", False) or options.get("--wait", False)
-		no_zip = options.get("-X", False) or options.get("--no-zip", False)
 		
-		app = App(output_dir, json_path, wait_to_compress, no_zip)
+		wait_to_compress = options.get("-W", False) or options.get("--wait", False)
+		
+		no_zip = options.get("-X", False) or options.get("--no-zip", False)
+
+		if (_asset_dir := options.get("-A", True) or options.get("--asset-dir", True)):
+			asset_dir = Path(_asset_dir)
+		else:
+			asset_dir = None
+		
+		# Run
+		app = App(output_dir, json_path, wait_to_compress, no_zip, asset_dir)
 		try:
 			app.run()
 		except Exception as e:
