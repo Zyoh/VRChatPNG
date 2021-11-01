@@ -16,7 +16,7 @@ class VRChatThumbnail:
 		Quest = 2
 
 	@staticmethod
-	def make_thumbnail(avatar_image: Image, platform, avatar_name: str, author_name: str, data_dir: Path) -> Image:
+	def make_thumbnail(avatar_image: Image, platform, avatar_name: str, author_name: str, data_dir: Path, contains_asset: bool = False) -> Image:
 		assert isinstance(platform, VRChatThumbnail.Platform)
 		assert isinstance(avatar_name, str)
 		assert isinstance(author_name, str)
@@ -27,6 +27,7 @@ class VRChatThumbnail:
 		text_overlay = Image.open(data_dir / 'text_overlay.png')
 		corner_mask = Image.open(data_dir / 'corner_mask.png')
 		platform_icon = Image.open(data_dir / 'vrc_platform.png')
+		file_icon = Image.open(data_dir / 'file.png')
 
 		if (data_dir / 'font.ttf').is_file():
 			font_path = data_dir / 'font.ttf'
@@ -53,15 +54,23 @@ class VRChatThumbnail:
 
 		# - Platform support icon -
 		platform_icon = platform_icon.convert('RGBA')
-		# platform_icon.putalpha(Image.new("L", platform_icon.size, 75))
+		# Set alpha
 		platform_icon.putalpha(
 			Image.fromarray(np.asarray(platform_icon.split()[-1]) * 0.85).convert("L")
+		)
+
+		# - File icon -
+		file_icon = file_icon.convert("RGBA")
+		# Set alpha
+		file_icon.putalpha(
+			Image.fromarray(np.asarray(file_icon.split()[-1]) * 0.85).convert("L")
 		)
 		
 		# Width should be 512 on a background with a width of 1200
 		_icon_width = int( 320 / 1200 * avatar_image.size[0] )
 		_icon_height = int( platform_icon.size[1] / platform_icon.size[0] * _icon_width )
 		platform_icon = platform_icon.resize( (_icon_width, _icon_height), Image.ANTIALIAS )
+		file_icon = file_icon.resize( (_icon_width//2, _icon_width//2), Image.ANTIALIAS )
 
 		# Crop icon set to the correct icon
 		platform_icon = platform_icon.crop((
@@ -77,6 +86,16 @@ class VRChatThumbnail:
 		_icon_offset = int( 25/900 * avatar_image.size[1] )
 		avatar_image.paste( platform_icon, (_icon_offset,_icon_offset), platform_icon )
 		avatar_image.putalpha(corner_mask)
+
+		if contains_asset:
+			avatar_image.paste(
+				file_icon, 
+				(
+					int(_icon_offset * 1.5),
+					(_icon_offset * 2) + platform_icon.size[1]
+				), 
+				file_icon
+			)
 
 		# --- Write text ---
 		_font_title = ImageFont.truetype( str(font_path) , int(avatar_image.size[0]*0.1) )

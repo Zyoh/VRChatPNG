@@ -108,6 +108,7 @@ class App:
 		print(f"Downloading: {data.get('id')}")
 
 		unique_name = f"{data.get('id')}.{data.get('version')}"
+		contains_asset = False
 
 		# Make folder for files
 		working_dir = self.output_dir / f"{unique_name}"
@@ -129,6 +130,7 @@ class App:
 			if asset_file_paths := list(self.asset_dir.rglob(f"{data.get('id')}.*.vrca")):
 				asset_file_path = sorted(asset_file_paths)[-1]
 				shutil.copy(asset_file_path.resolve(), working_dir / asset_file_path.name)
+				contains_asset = True
 
 		# Add file with timestamp
 		(working_dir / str(int(time.time()))).touch()
@@ -155,7 +157,8 @@ class App:
 			platform=platform,
 			avatar_name=data.get('name'),
 			author_name=data.get('authorName'),
-			data_dir=Path(__file__).parent / "data"
+			data_dir=Path(__file__).parent / "data",
+			contains_asset=contains_asset
 		).save(
 			str(working_dir / 'image.png')
 		)

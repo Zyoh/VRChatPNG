@@ -102,3 +102,9 @@ except Exception as e:
 # License
 
 [MIT license](LICENSE), excluding files within the [data](VRChatPNG/data) directory.
+
+[File icon](VRChatPNG/data/file.png) from [https://icons8.com](https://icons8.com)
+
+[Font license](VRChatPNG/data/Noto_Sans_JP.OFL.txt)
+
+[VRChat platform icon](VRChatPNG/data/vrc_platform.png) by [kokorobouzu on booth.pm](https://booth.pm/ja/items/1448967)
