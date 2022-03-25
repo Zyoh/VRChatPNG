@@ -24,42 +24,6 @@ Update your environment according to [requirements.txt](requirements.txt)
 
 # Usage
 
-### **Command Line**
-```bash
-python VRChatPNG.py \
-	[-h|--help] \
-	-i <path> \
-	[-P] \
-	[-W|--wait] \
-	[-X|--no-zip] \
-	[-o <path>|--out-dir <path>] \
-	[-A <path>|--asset-dir <path>]
-```
-
-```bash
-python VRChatThumbnail.py \
-	[-h|--help] \
-	-i <path> \
-	-p <int>|--platform <int> \
-	-n <str>|--name <str> \
-	-a <str>|--author <str>
-```
-Ex.
-```bash
-python VRChatPNG.py -h
-python VRChatPNG.py --help
-python VRChatPNG.py -i ...
-python VRChatPNG.py -i ... -P
-python VRChatPNG.py -i ... -X --wait
-```
-
-```bash
-python VRChatThumbnail.py -h
-python VRChatThumbnail.py --help
-python VRChatThumbnail.py -i ... --platform 0 -n name --author "author_name"
-```
-
-### **Python**
 ```Python
 from PIL import Image
 from VRChatThumbnail import VRChatThumbnail
