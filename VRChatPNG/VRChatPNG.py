@@ -2,13 +2,13 @@ from pathlib import Path
 from tqdm import tqdm
 from PIL import Image
 import requests
+import argparse
 import shutil
 import json
 import time
 import sys
 
 from VRChatThumbnail import VRChatThumbnail
-from options import Options
 
 
 class Downloader:
@@ -189,54 +189,67 @@ class App:
 
 
 def main():
-	options = Options(sys.argv)
-	HELP = """
-Help:
-    -h, --help                        Display help message and exit.
+	# --- Args ---
+	parser = argparse.ArgumentParser(description="Create previews of VRChat avatars and worlds.")
+	parser.add_argument(
+		"-i",
+		metavar="JSON_PATH",
+		type=Path,
+		help="Path to JSON file containing avatar data.",
+		required=True
+	)
+	parser.add_argument(
+		"-o",
+		"--out-dir",
+		type=Path,
+		default=None,
+		metavar="OUT_DIR_PATH",
+		help="Generate all files within this directory. Defaults to JSON file directory.",
+	)
+	parser.add_argument(
+		"-P",
+		action="store_true",
+		help="Keep temp directory on app failure. Must be manually deleted.",
+	)
+	parser.add_argument(
+		"-W",
+		"--wait",
+		action="store_true",
+		help="Wait for user to add|remove|modify files in temp directory before compressing.",
+	)
+	parser.add_argument(
+		"-X",
+		"--no-zip",
+		action="store_true",
+		help="Generate only thumbnail without embedding zip."
+	)
+	parser.add_argument(
+		"-A",
+		"--asset-dir",
+		type=Path,
+		default=None,
+		metavar="ASSET_DIR_PATH",
+		help="Output directory of VRChat-Cache-Exporter. VRCA files found here will be included in the output PNG.",
+	)
+	args = parser.parse_args()
+	# ^-- Args --^
 
-Main:
-    -i <path>                         Path to JSON file containing avatar data.
-    [-o <path>, --out-dir <path>]     Generate all files within this directory. Defaults to JSON file directory.
-    [-P]                              Keep temp directory on app failure. Must be manually deleted.
-    [-W, --wait]                      Wait for user to add|remove|modify files in temp directory before compressing.
-    [-X, --no-zip]                    Generate only thumbnail without embedding zip.
-    [-A <path>, --asset-dir <path>]   Output directory of VRChat-Cache-Exporter. VRCA files found here will be included in the output PNG.
-"""
-
-	if options.get("-h", False) or options.get("--help", False):
-		# Help
-		pass
-	elif (json_path := options.get("-i", True)):
-		# Main program
-		json_path = Path(json_path).resolve()
-		
-		if (_output_dir := options.get("-o", True) or options.get("--out-dir", True)):
-			output_dir = Path(_output_dir).resolve()
-			output_dir.mkdir(exist_ok=True, parents=True)
-		else:
-			output_dir = json_path.parent
-		
-		wait_to_compress = options.get("-W", False) or options.get("--wait", False)
-		
-		no_zip = options.get("-X", False) or options.get("--no-zip", False)
-
-		if (_asset_dir := options.get("-A", True) or options.get("--asset-dir", True)):
-			asset_dir = Path(_asset_dir)
-		else:
-			asset_dir = None
-		
-		# Run
-		app = App(output_dir, json_path, wait_to_compress, no_zip, asset_dir)
-		try:
-			app.run()
-		except Exception as e:
-			if not options.get("-P", False):
-				app.delete_floating()
-			raise e
-
-		return
+	json_path = Path(args.i).resolve()
+	assert json_path.exists(), "JSON file does not exist."
 	
-	print(HELP)
+	if (output_dir := args.out_dir):
+		output_dir = Path(output_dir).resolve()
+		output_dir.mkdir(exist_ok=True, parents=True)
+	else:
+		output_dir = json_path.parent
+
+	app = App(output_dir, json_path, args.wait, args.no_zip, args.asset_dir)
+	try:
+		app.run()
+	except Exception as e:
+		if not args.p:
+			app.delete_floating()
+		raise e
 
 
 if __name__ == "__main__":

@@ -2,10 +2,9 @@ from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 from enum import Enum
 import numpy as np
+import argparse
 import time
 import sys
-
-from options import Options
 
 
 class VRChatThumbnail:
@@ -122,55 +121,69 @@ class VRChatThumbnail:
 
 
 def main():
-	options = Options(sys.argv)
+	# --- Args ---
+	parser = argparse.ArgumentParser(description="Generates a thumbnail similar to how VRChat avatars are displayed in-game - showing name, author, and supported platforms.")
+	parser.add_argument(
+		"-i",
+		metavar="IMAGE_PATH",
+		type=Path,
+		help="Path to image.",
+		required=True
+	)
+	parser.add_argument(
+		"-o",
+		"--out-dir",
+		metavar="OUT_DIR_PATH",
+		type=Path,
+		help="Output result to this directory. Defaults to input file's directory.",
+		default=None
+	)
+	parser.add_argument(
+		"-p",
+		"--platform",
+		metavar="P",
+		type=int,
+		help="Supported platforms. PC+Quest (0) | PC Only (1) | Quest Only (2)",
+		required=True,
+		choices=[0, 1, 2]
+	)
+	parser.add_argument(
+		"-n",
+		"--name",
+		metavar="NAME",
+		type=str,
+		help="Name of avatar.",
+		required=True
+	)
+	parser.add_argument(
+		"-a",
+		"--author",
+		metavar="AUTHOR_NAME",
+		type=str,
+		help="Name of avatar author.",
+		required=True
+	)
+	args = parser.parse_args()
+	# ^-- Args --^
 
-	HELP = """
-Help:
-    -h, --help                      Display help message and exit.
+	image_path = Path(args.i).resolve()
+	assert image_path.exists(), "Image does not exist."
 
-Main:
-    -i <path>                       Path to image.
-    [-o <path>, --output <path>]    Output result to this path. Defaults to auto-generating file in input file's directory.
-    -p <int>, --platform <int>      Supported platforms.
-        - 0 | PC & Quest
-        - 1 | PC
-        - 2 | Quest
-    -n <str>, --name <str>          Name of avatar.
-    -a <str>, --author <str>        Name of avatar author.
-"""
+	if out_path := args.out_dir:
+		out_path = Path(out_path).resolve()
+		if out_path.is_dir():
+			out_path = out_path / (f"{time.time()}." + image_path.stem + ".png")
+	else:
+		out_path = image_path.parent / (f"{time.time()}." + image_path.stem + ".png")
 
-	if options.get("-h", False) or options.get("--help", False):
-		pass
-	elif (image_path := options.get("-i")) and \
-		(platform := options.get("-p") or options.get("--platform")) and \
-		(platform in ["0", "1", "2"]) and \
-		(avatar_name := options.get("-n") or options.get("--name")) and \
-		(author_name := options.get("-a") or options.get("--author")):
-
-		image_path = Path(image_path).resolve()
-		assert image_path.exists()
-
-		if out_path := options.get("-o") or options.get("--output"):
-			out_path = Path(out_path).resolve()
-			if out_path.is_dir():
-				out_path = out_path / (f"{time.time()}." + image_path.stem + ".png")
-		else:
-			out_path = image_path.parent / (f"{time.time()}." + image_path.stem + ".png")
-
-		platform = VRChatThumbnail.Platform(int(platform))
-
-		img = VRChatThumbnail.make_thumbnail(
-			avatar_image=Image.open(image_path),
-			platform=platform,
-			avatar_name=avatar_name,
-			author_name=author_name,
-			data_dir=Path(__file__).parent / "data"
-		)
-		img.save(out_path)
-
-		return
-	
-	print(HELP)
+	img = VRChatThumbnail.make_thumbnail(
+		avatar_image=Image.open(image_path),
+		platform=VRChatThumbnail.Platform(args.platform),
+		avatar_name=args.name,
+		author_name=args.author,
+		data_dir=Path(__file__).parent / "data"
+	)
+	img.save(out_path)
 
 
 if __name__ == "__main__":
